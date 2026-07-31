@@ -2,3 +2,10 @@ https://zagobestdv01ae1web01-staging-d2adg2fmf8gdgpeu.eastasia-01.azurewebsites.
 
 
 https://zagobestdv01ae1web01-staging-d2adg2fmf8gdgpeu.eastasia-01.azurewebsites.net/
+
+
+
+app id: b9632d7c-4302-4d50-b536-45ce264e1314
+tenant id: 2da8bd67-6a72-4cd8-8e8a-8e9721305d50
+
+
