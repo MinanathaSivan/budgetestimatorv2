@@ -1,30 +1,64 @@
 const { findUser, backfillUpn, autoProvisionUser, repairUserName } = require("./tables");
 
 function getClientPrincipal(req) {
-  const header =
-    req.headers["x-ms-client-principal"] ||
-    (req.get && req.get("x-ms-client-principal"));
-  if (!header) return null;
+  const h = req.headers || {};
 
-  let p;
-  try {
-    p = JSON.parse(Buffer.from(header, "base64").toString("utf8"));
-  } catch {
-    return null;
+  // Path 1: the full base64 x-ms-client-principal (App Service Easy Auth & SWA).
+  const header = h["x-ms-client-principal"] || (req.get && req.get("x-ms-client-principal"));
+  if (header) {
+    try {
+      const p = JSON.parse(Buffer.from(header, "base64").toString("utf8"));
+
+      // Easy Auth's decoded shape names claim keys via p.name_typ / p.claims[].typ.
+      const rawClaims = p.claims || p.userClaims || [];
+      const claims = rawClaims.map((c) => ({
+        typ: c.typ || c.type || "",
+        val: c.val || c.value || "",
+      }));
+
+      const byType = (needle) =>
+        claims.find((c) => String(c.typ || "").split("/").pop().toLowerCase() === needle)?.val;
+
+      const userDetails =
+        p.userDetails ||
+        byType("upn") ||
+        byType("preferred_username") ||
+        byType("emailaddress") ||
+        p.name ||
+        h["x-ms-client-principal-name"] ||
+        "";
+
+      if (userDetails) {
+        return {
+          identityProvider: p.identityProvider || p.auth_typ || h["x-ms-client-principal-idp"] || "aad",
+          userId: p.userId || byType("objectidentifier") || h["x-ms-client-principal-id"] || "",
+          userDetails,
+          userRoles: p.userRoles || ["authenticated"],
+          claims,
+        };
+      }
+    } catch { /* fall through to header-based path */ }
   }
 
-  // Easy Auth uses `userDetails`/`userId`; some SDKs use `name_typ`/`role_typ`
-  // keys on claims. Normalise claim entries to { typ, val } either way.
-  const claims = (p.claims || []).map((c) => ({
-    typ: c.typ || c.type || c[p.name_typ] || "",
-    val: c.val || c.value || "",
-  }));
+  // Path 2: individual Easy Auth headers (always set by App Service when the
+  // base64 blob is absent or unparsed), plus the SPA-forwarded x-user-* values.
+  const name = h["x-ms-client-principal-name"];
+  const forwardedEmail = h["x-user-email"];
+  const forwardedName = h["x-user-name"] ? decodeURIComponent(h["x-user-name"]) : null;
+  const userDetails = name || forwardedEmail || "";
+  if (!userDetails) return null;
+
+  const claims = [];
+  if (forwardedEmail) {
+    claims.push({ typ: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", val: forwardedEmail });
+  }
+  if (forwardedName) claims.push({ typ: "name", val: forwardedName });
 
   return {
-    identityProvider: p.identityProvider || p.auth_typ || "aad",
-    userId: p.userId || p.oid || "",
-    userDetails: p.userDetails || p.name || "",
-    userRoles: p.userRoles || [],
+    identityProvider: h["x-ms-client-principal-idp"] || "aad",
+    userId: h["x-ms-client-principal-id"] || "",
+    userDetails,
+    userRoles: ["authenticated"],
     claims,
   };
 }
