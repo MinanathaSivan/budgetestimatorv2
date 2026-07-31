@@ -1,8 +1,5 @@
-Identity provider: Microsoft
-App registration type: Provide the details of an existing app registration
-Application (client) ID: b9632d7c-4302-4d50-b536-45ce264e1314
-Client secret: the secret from that app registration (same one SWA used, or create a new one on the registration)
-Issuer URL: https://login.microsoftonline.com/2da8bd67-6a72-4cd8-8e8a-8e9721305d50/v2.0
-Allowed token audiences: b9632d7c-4302-4d50-b536-45ce264e1314
-Restrict access: Require authentication
-Unauthenticated requests: HTTP 302 redirect to login
+Microsoft
+Sign in
+Sorry, but we’re having trouble signing you in.
+
+AADSTS50011: The redirect URI 'https://zagobestdv01ae1web01-staging-d2adg2fmf8gdgpeu.eastasia-01.azurewebsites.net/.auth/login/aad/callback' specified in the request does not match the redirect URIs configured for the application 'b9632d7c-4302-4d50-b536-45ce264e1314'. Make sure the redirect URI sent in the request matches one added to your application in the Azure portal. Navigate to https://aka.ms/redirectUriMismatchError to learn more about how to fix this.
