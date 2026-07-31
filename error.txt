@@ -1,2 +1,10 @@
-Error 403 - Forbidden
-The web app you have attempted to reach has blocked your access.
+https://zagobestdv01ae1web01-e7gadkfzdpavh8da.eastasia-01.azurewebsites.net/
+
+
+https://uat-axa-cloud-budget-estimator.corp.intraxa/
+404 Web Site not found.
+You may be seeing this error due to one of the reasons listed below :
+
+Custom domain has not been configured inside Azure. See how to map an existing domain to resolve this.
+Client cache is still pointing the domain to old IP address. Clear the cache by running the command ipconfig/flushdns.
+Checkout App Service Domain FAQ for more questions.
