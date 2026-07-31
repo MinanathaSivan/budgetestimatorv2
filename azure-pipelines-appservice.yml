@@ -1,0 +1,94 @@
+# azure-pipelines-appservice.yml
+# Build the SPA, assemble the server bundle, deploy to App Service (Linux/Node).
+# Deploys to the STAGING slot, then you swap to production for zero-downtime.
+
+trigger:
+  branches:
+    include: [ main ]
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  appName: '<YOUR_APP_SERVICE_NAME>'
+  resourceGroup: '<YOUR_RG>'
+  azureSubscription: '<YOUR_SERVICE_CONNECTION>'
+  slotName: 'staging'
+
+stages:
+- stage: Build
+  jobs:
+  - job: build
+    steps:
+    - task: NodeTool@0
+      inputs: { versionSpec: '20.x' }
+
+    # 1. Build the SPA
+    - script: |
+        cd app
+        npm ci
+        npm run build
+      displayName: 'Build SPA (app/dist)'
+
+    # 2. Assemble the deployment bundle: server + api + built dist + prod deps
+    - script: |
+        set -e
+        mkdir -p deploy
+        cp server.js package.json deploy/
+        cp -r api deploy/api
+        cp -r app/dist deploy/dist
+        cd deploy
+        npm install --omit=dev
+      displayName: 'Assemble server bundle'
+
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: 'deploy'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+        replaceExistingArchive: true
+
+    - publish: '$(Build.ArtifactStagingDirectory)/app.zip'
+      artifact: app
+
+- stage: DeployStaging
+  dependsOn: Build
+  jobs:
+  - deployment: deployStaging
+    environment: 'Staging'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: app
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appType: 'webAppLinux'
+              appName: '$(appName)'
+              deployToSlotOrASE: true
+              resourceGroupName: '$(resourceGroup)'
+              slotName: '$(slotName)'
+              package: '$(Pipeline.Workspace)/app/app.zip'
+              runtimeStack: 'NODE|20-lts'
+              startUpCommand: 'node server.js'
+
+- stage: SwapToProduction
+  dependsOn: DeployStaging
+  jobs:
+  - deployment: swap
+    environment: 'Production'   # add a manual approval on this environment
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureAppServiceManage@0
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              action: 'Swap Slots'
+              webAppName: '$(appName)'
+              resourceGroupName: '$(resourceGroup)'
+              sourceSlot: '$(slotName)'
+              targetSlot: 'production'

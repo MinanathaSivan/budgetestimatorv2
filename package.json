@@ -1,0 +1,22 @@
+{
+  "name": "axa-budget-estimator",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20 <21"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-pricing": "^3.500.0",
+    "@azure/data-tables": "^13.2.2",
+    "express": "^4.22.2",
+    "uuid": "^9.0.1"
+  },
+  "description": "",
+  "main": "auth-easyauth-snippet.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
