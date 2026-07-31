@@ -1,6 +1,10 @@
 # azure-pipelines-appservice.yml
-# Build the SPA, assemble the server bundle, deploy to App Service (Linux/Node).
-# Deploys to the STAGING slot, then you swap to production for zero-downtime.
+# Deploys CODE to the existing App Service zagobestdv01ae1web01.
+# Does NOT create infrastructure — the app, plan, slot, private endpoint and
+# Easy Auth are provisioned once in the portal/CLI.
+#
+# Flow: build SPA -> bundle server+api+dist -> deploy to STAGING slot ->
+# push app settings -> manual approval -> swap staging into production.
 
 trigger:
   branches:
@@ -10,10 +14,7 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  appName: '<YOUR_APP_SERVICE_NAME>'
-  resourceGroup: '<YOUR_RG>'
-  azureSubscription: '<YOUR_SERVICE_CONNECTION>'
-  slotName: 'staging'
+  - group: web-development        # azureSubscription, appName, resourceGroup, slotName, secrets
 
 stages:
 - stage: Build
@@ -21,16 +22,16 @@ stages:
   - job: build
     steps:
     - task: NodeTool@0
-      inputs: { versionSpec: '20.x' }
+      inputs:
+        versionSpec: '24.x'      # match the App Service runtime NODE|24-lts
+      displayName: 'Use Node 24'
 
-    # 1. Build the SPA
     - script: |
         cd app
         npm ci
         npm run build
       displayName: 'Build SPA (app/dist)'
 
-    # 2. Assemble the deployment bundle: server + api + built dist + prod deps
     - script: |
         set -e
         mkdir -p deploy
@@ -63,7 +64,28 @@ stages:
           steps:
           - download: current
             artifact: app
+
+          # Push application settings to the STAGING slot before deploying code.
+          - task: AzureAppServiceSettings@1
+            displayName: 'Apply app settings (staging slot)'
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appName: '$(appName)'
+              resourceGroupName: '$(resourceGroup)'
+              slotName: '$(slotName)'
+              appSettings: |
+                [
+                  { "name": "TABLES_CONNECTION",    "value": "$(TABLES_CONNECTION)",    "slotSetting": false },
+                  { "name": "AWS_ACCESS_KEY_ID",    "value": "$(AWS_ACCESS_KEY_ID)",    "slotSetting": false },
+                  { "name": "AWS_SECRET_ACCESS_KEY","value": "$(AWS_SECRET_ACCESS_KEY)","slotSetting": false },
+                  { "name": "REFRESH_SECRET",       "value": "$(REFRESH_SECRET)",       "slotSetting": false },
+                  { "name": "WEBSITE_RUN_FROM_PACKAGE",        "value": "1",     "slotSetting": false },
+                  { "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",  "value": "false", "slotSetting": false },
+                  { "name": "WEBSITES_PORT",                   "value": "8080",  "slotSetting": false }
+                ]
+
           - task: AzureWebApp@1
+            displayName: 'Deploy code to staging slot'
             inputs:
               azureSubscription: '$(azureSubscription)'
               appType: 'webAppLinux'
@@ -72,19 +94,20 @@ stages:
               resourceGroupName: '$(resourceGroup)'
               slotName: '$(slotName)'
               package: '$(Pipeline.Workspace)/app/app.zip'
-              runtimeStack: 'NODE|20-lts'
+              runtimeStack: 'NODE|24-lts'
               startUpCommand: 'node server.js'
 
 - stage: SwapToProduction
   dependsOn: DeployStaging
   jobs:
   - deployment: swap
-    environment: 'Production'   # add a manual approval on this environment
+    environment: 'Production'      # add a manual approval check on this environment
     strategy:
       runOnce:
         deploy:
           steps:
           - task: AzureAppServiceManage@0
+            displayName: 'Swap staging -> production'
             inputs:
               azureSubscription: '$(azureSubscription)'
               action: 'Swap Slots'
