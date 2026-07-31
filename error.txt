@@ -1,5 +1,5 @@
-Microsoft
-Sign in
-Sorry, but we’re having trouble signing you in.
+⚠️
+Something went wrong
+500 Internal Server Error: {"error":"decodePrincipal is not defined"}
 
-AADSTS50011: The redirect URI 'https://zagobestdv01ae1web01-staging-d2adg2fmf8gdgpeu.eastasia-01.azurewebsites.net/.auth/login/aad/callback' specified in the request does not match the redirect URIs configured for the application 'b9632d7c-4302-4d50-b536-45ce264e1314'. Make sure the redirect URI sent in the request matches one added to your application in the Azure portal. Navigate to https://aka.ms/redirectUriMismatchError to learn more about how to fix this.
+Retry
