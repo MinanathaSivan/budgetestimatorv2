@@ -1,0 +1,6 @@
+app service name: zagobestdv01ae1web01
+resource group name: z-ago-best-dv01-ae1-rgp01
+subscription name : ago-my-automation-dv-01
+subscription id: d543923f-bd91-4fe8-a8d3-b66f8273dcbb
+spn name : GO_MY_B009_ahk_best_lz_dv_01
+service connection name: sc-estimator-dev
