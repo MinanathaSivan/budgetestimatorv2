@@ -1,5 +1,1 @@
-⚠️
-Something went wrong
-500 Internal Server Error: {"error":"decodePrincipal is not defined"}
-
-Retry
+401 Unauthorized: {"error":"No authenticated principal"}
