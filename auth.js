@@ -1,13 +1,33 @@
 const { findUser, backfillUpn, autoProvisionUser, repairUserName } = require("./tables");
 
-function decodePrincipal(req) {
-  const header = req.headers["x-ms-client-principal"];
+function getClientPrincipal(req) {
+  const header =
+    req.headers["x-ms-client-principal"] ||
+    (req.get && req.get("x-ms-client-principal"));
   if (!header) return null;
-  try {
-    return JSON.parse(Buffer.from(header, "base64").toString("utf8"));
-  } catch { return null; }
-}
 
+  let p;
+  try {
+    p = JSON.parse(Buffer.from(header, "base64").toString("utf8"));
+  } catch {
+    return null;
+  }
+
+  // Easy Auth uses `userDetails`/`userId`; some SDKs use `name_typ`/`role_typ`
+  // keys on claims. Normalise claim entries to { typ, val } either way.
+  const claims = (p.claims || []).map((c) => ({
+    typ: c.typ || c.type || c[p.name_typ] || "",
+    val: c.val || c.value || "",
+  }));
+
+  return {
+    identityProvider: p.identityProvider || p.auth_typ || "aad",
+    userId: p.userId || p.oid || "",
+    userDetails: p.userDetails || p.name || "",
+    userRoles: p.userRoles || [],
+    claims,
+  };
+}
 // Claim keys that can carry a human display name. Matching is done on the LAST
 // SEGMENT of the claim type, so both the short OIDC form ("name") and any
 // schema-URI form (".../identity/claims/name") are caught without having to
@@ -89,7 +109,7 @@ function initialsOf(name, fallback) {
 
 async function authorize(req, requiredRoles) {
   // Step 1: Verify authentication via SWA's header
-  const principal = decodePrincipal(req);
+  const principal = getClientPrincipal(req);
   if (!principal || !principal.userDetails) {
     const e = new Error("No authenticated principal"); e.status = 401; throw e;
   }
