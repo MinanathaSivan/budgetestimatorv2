@@ -1,10 +1,48 @@
-https://zagobestdv01ae1web01-e7gadkfzdpavh8da.eastasia-01.azurewebsites.net/
-
-
-https://uat-axa-cloud-budget-estimator.corp.intraxa/
-404 Web Site not found.
-You may be seeing this error due to one of the reasons listed below :
-
-Custom domain has not been configured inside Azure. See how to map an existing domain to resolve this.
-Client cache is still pointing the domain to old IP address. Clear the cache by running the command ipconfig/flushdns.
-Checkout App Service Domain FAQ for more questions.
+PS C:\Users\Z179GT\OneDrive - AXA\Documents\Work\projects\EST\certs> openssl s_client -connect uat-axa-cloud-budget-estimator.axa.com:443 -servername uat-axa-cloud-budget-estimator.axa.com
+openssl : Connecting to 20.189.109.113
+At line:1 char:1
++ openssl s_client -connect uat-axa-cloud-budget-estimator.axa.com:443  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Connecting to 20.189.109.113:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+depth=1 O=GIE AXA, CN=AXA-Issuing-CA-PR1, C=FR
+verify error:num=20:unable to get local issuer certificate
+verify return:1
+depth=0 C=FR, O=GIE AXA, CN=uat-axa-cloud-budget-estimator.axa.com
+verify return:1
+CONNECTED(0000023C)
+---
+Certificate chain
+ 0 s:C=FR, O=GIE AXA, CN=uat-axa-cloud-budget-estimator.axa.com
+   i:O=GIE AXA, CN=AXA-Issuing-CA-PR1, C=FR
+   a:PKEY: RSA, 2048 (bit); sigalg: sha256WithRSAEncryption
+   v:NotBefore: Aug 13 11:47:06 2026 GMT; NotAfter: Sep  7 11:47:06 2027 GMT
+ 1 s:O=GIE AXA, CN=AXA-Issuing-CA-PR1, C=FR
+   i:O=GIE AXA, CN=AXA-Enterprise-Root-CA, C=FR
+   a:PKEY: RSA, 4096 (bit); sigalg: sha256WithRSAEncryption
+   v:NotBefore: Feb 28 13:00:13 2024 GMT; NotAfter: Feb 28 13:00:13 2034 GMT
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+hiden
+-----END CERTIFICATE-----
+subject=C=FR, O=GIE AXA, CN=uat-axa-cloud-budget-estimator.axa.com
+issuer=O=GIE AXA, CN=AXA-Issuing-CA-PR1, C=FR
+---
+No client certificate CA names sent
+Peer signing digest: SHA256
+Peer signature type: rsa_pss_rsae_sha256
+Peer Temp Key: ECDH, secp521r1, 521 bits
+---
+SSL handshake has read 4033 bytes and written 2099 bytes
+Verification error: unable to get local issuer certificate
+---
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Protocol: TLSv1.3
+Server public key is 2048 bit
+This TLS version forbids renegotiation.
+No ALPN negotiated
+Early data was not sent
+Verify return code: 20 (unable to get local issuer certificate)
+---
