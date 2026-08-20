@@ -6,3 +6,4 @@
   "token_endpoint_auth_method": "client_secret_basic",
   "scope": "openid profile email"
 }
+"When we POST the registration request, we'll send a JSON body describing our client. We want to confirm the required fields so the call isn't rejected. Here's the payload we're planning to send — please confirm it's complete or tell us what to add/change:"
