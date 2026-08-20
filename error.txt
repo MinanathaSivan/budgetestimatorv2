@@ -1,16 +1,8 @@
-Hi [name],
-
-Thanks — the documentation and sample tokens cover what we need on the protocol side, and our integration against the DEV metadata (https://onelogin.dev.axa.com/.well-known/openid-configuration) is understood and ready to implement.
-
-We understand the client ID and secret are issued per application instance, once the demand request is approved. Our one open question is the client provisioning method:
-
-The metadata exposes a registration_endpoint (https://onelogin.dev.axa.com/as/clients.oauth2), i.e. Dynamic Client Registration. If the intended route is for us to self-register, could you confirm:
-
-How the registration call is authorised — e.g. an initial access token (and how we obtain it), or another mechanism (mTLS, admin credential).
-Any mandatory client attributes your PingFederate policy requires beyond the standard set (redirect_uris, grant_types=authorization_code, response_types=code, token_endpoint_auth_method=client_secret_basic, scope=openid profile email).
-Whether the endpoint returns a client_secret, or expects private_key_jwt instead (both are listed as supported).
-
-Alternatively, if registration is handled on your side as part of the demand approval, then no action is needed from us beyond providing our callback URL:
-https://uat-axa-cloud-budget-estimator.axa.com/.auth/login/onelogin/callback
-
-Thanks,
+{
+  "client_name": "Cloud Budget Estimator (DEV)",
+  "redirect_uris": ["https://uat-axa-cloud-budget-estimator.axa.com/.auth/login/onelogin/callback"],
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "client_secret_basic",
+  "scope": "openid profile email"
+}
