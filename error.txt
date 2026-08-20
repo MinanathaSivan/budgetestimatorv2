@@ -1,48 +1,26 @@
-PS C:\Users\Z179GT\OneDrive - AXA\Documents\Work\projects\EST\certs> openssl s_client -connect uat-axa-cloud-budget-estimator.axa.com:443 -servername uat-axa-cloud-budget-estimator.axa.com
-openssl : Connecting to 20.189.109.113
-At line:1 char:1
-+ openssl s_client -connect uat-axa-cloud-budget-estimator.axa.com:443  ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (Connecting to 20.189.109.113:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-depth=1 O=GIE AXA, CN=AXA-Issuing-CA-PR1, C=FR
-verify error:num=20:unable to get local issuer certificate
-verify return:1
-depth=0 C=FR, O=GIE AXA, CN=uat-axa-cloud-budget-estimator.axa.com
-verify return:1
-CONNECTED(0000023C)
----
-Certificate chain
- 0 s:C=FR, O=GIE AXA, CN=uat-axa-cloud-budget-estimator.axa.com
-   i:O=GIE AXA, CN=AXA-Issuing-CA-PR1, C=FR
-   a:PKEY: RSA, 2048 (bit); sigalg: sha256WithRSAEncryption
-   v:NotBefore: Aug 13 11:47:06 2026 GMT; NotAfter: Sep  7 11:47:06 2027 GMT
- 1 s:O=GIE AXA, CN=AXA-Issuing-CA-PR1, C=FR
-   i:O=GIE AXA, CN=AXA-Enterprise-Root-CA, C=FR
-   a:PKEY: RSA, 4096 (bit); sigalg: sha256WithRSAEncryption
-   v:NotBefore: Feb 28 13:00:13 2024 GMT; NotAfter: Feb 28 13:00:13 2034 GMT
----
-Server certificate
------BEGIN CERTIFICATE-----
-hiden
------END CERTIFICATE-----
-subject=C=FR, O=GIE AXA, CN=uat-axa-cloud-budget-estimator.axa.com
-issuer=O=GIE AXA, CN=AXA-Issuing-CA-PR1, C=FR
----
-No client certificate CA names sent
-Peer signing digest: SHA256
-Peer signature type: rsa_pss_rsae_sha256
-Peer Temp Key: ECDH, secp521r1, 521 bits
----
-SSL handshake has read 4033 bytes and written 2099 bytes
-Verification error: unable to get local issuer certificate
----
-New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
-Protocol: TLSv1.3
-Server public key is 2048 bit
-This TLS version forbids renegotiation.
-No ALPN negotiated
-Early data was not sent
-Verify return code: 20 (unable to get local issuer certificate)
----
+Hi [name],
+
+Thanks for the documentation and sample tokens — they give us everything we need on the protocol side. I'd like to clarify where we are, as our earlier query may have been read as broader than intended.
+
+The configuration on our side is fully understood and ready to implement against the DEV metadata (https://onelogin.dev.axa.com/.well-known/openid-configuration):
+
+OIDC authorization-code flow with PKCE (S256), client_secret_basic token-endpoint auth, RS256 ID-token validation against the published JWKS (/pf/JWKS), scopes openid profile email.
+We'll consume the email claim for authorization — application roles are managed internally within our tool, so no group/role claim is required from OneAccount.
+Redirect URI registration and the OIDC provider setup on the application host.
+
+We've also accounted for the lifecycle details in the best-practices guide — the per-environment issuers (dev/stg/prd), JWKS rotation/refresh handling, and IdP-initiated logout via /idp/startSLO.ping — and we understand a separate client ID/secret is issued per application instance/environment, delivered once the demand request is approved.
+
+So the integration itself is clear. Our remaining question is specifically about the client provisioning method:
+
+The metadata exposes a registration_endpoint (https://onelogin.dev.axa.com/as/clients.oauth2), i.e. Dynamic Client Registration. If the intended route is for us to self-register, could you confirm the following so we can call it correctly:
+
+How the registration call is authorised — e.g. an initial access token (and how we obtain it), or another mechanism (mutual TLS, admin credential, etc.).
+Any mandatory client metadata / attributes your PingFederate policy requires beyond the standard set (redirect_uris, grant_types=authorization_code, response_types=code, token_endpoint_auth_method=client_secret_basic, scope=openid profile email).
+Whether the endpoint returns a client_secret, or whether private_key_jwt is expected instead (both are listed as supported in the metadata).
+
+Alternatively, if client registration is handled on your side as part of the demand approval, no action is needed from us beyond the redirect URI below.
+
+Either way, our callback URL is:
+https://uat-axa-cloud-budget-estimator.axa.com/.auth/login/onelogin/callback
+
+Thanks,
