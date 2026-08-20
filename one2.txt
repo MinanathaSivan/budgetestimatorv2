@@ -1,0 +1,222 @@
+Best Practices
+
+
+Client IDs (including secrets and relevant details) 
+A client ID / client secret is delivered for 1 application instance and should not be shared with others! 
+JWKS  Caching
+in general java web keys should not be cached - as the providing authentication/authorization platform is supposed to rotate them as needed to increase security (some endpoints even signal this by no-cache,no-store response header
+if an application decides to cache those for performance improvements on client side and reduction of calls toward the oauth server
+then those caches should be checked and updated in regular interval eg. every 12 hours.
+then a robust signature check must be implemented: e.g. on x failure signature checks the application needs to refresh its jwks cache even before its regular scheduled updates, x to be defined by the application owner but values between 1-5 seem reasonable 
+OAUTH endpoints per environment
+
+
+As a guideline for the applications relying on OAUTH for normal/expected usage, the tables below provide an overview of the commonly used OAUTH endpoints, a short description and reference usage frequency.
+
+
+
+PRD	https://onelogin.axa.com	
+https://onelogin.axa.com/.well-known/openid-configuration
+
+STG	https://onelogin.stg.axa.com	onelogin.stg.axa.com/.well-known/openid-configuration
+DEV	https://onelogin.dev.axa.com	https://onelogin.dev.axa.com/.well-known/openid-configuration
+
+
+Authorization code
+
+OAUTH endpoints
+
+Description
+
+Reference usage frequency
+
+Accessed By
+/.well-known/openid-configuration
+
+
+
+Static enumeration of OAUTH endpoints
+
+Optional
+
+Maximum once per user session
+
+Only relevant if OAUTH endpoints not hard coded in the application
+
+The client application (browser for SPA/client-side apps, server for server-side apps)
+/pf/JWKS
+
+
+
+Java web keys used to sign the tokens = static info
+
+see note about caching below
+
+Optional from application point of view as ESG is checking that
+
+Maximum once per session
+
+Ideally only to be read/checked if the flow fails
+
+The client application (browser for SPA/client-side apps, server for server-side apps)
+The API
+/as/authorization.oauth2
+
+
+
+Initiating OAUTH flow for a user for authorization code scenario
+
+Maximum once per user session
+
+The user browser
+/as/authorization.oauth2
+
+
+
+Confirming successful authentication for the session
+
+Maximum once per user session
+
+Perfect Authorize/ACS ratio would be 1/1 but considered normal upto +1,5/1
+
+The user browser (redirection from the 3rd party SAML IdP)
+/as/token.oauth2
+
+
+
+
+
+
+
+Authorization code > exchanging authorization code for valid set of tokens (access_token, refresh_token and/or id_token)
+
+Maximum once per user session
+
+ACS/ token ratio should be 1/1
+
+ access_token :
+
+Default access token lifetime for GAD based apps = 1hr
+
+Default access token lifetime for FR and BE application = 2hr
+
+Lifetime can be customized per application  (24hrs max for One Account)
+
+The client application (browser for SPA/client-side apps, server for server-side apps)
+Refresh_token > exchange valid refresh token for new set of tokens
+
+Maximum once per ‘access token lifetime’
+
+Default refresh token lifetime = 7 days and 10hr IDLE timeout
+
+refresh token Lifetime can be customized per application (7 days max for One Account)
+
+The client application (browser for SPA/client-side apps, server for server-side apps)
+/idp/userinfo.openid
+
+Retrieving additional user attributes
+
+Requires id_token
+
+Optional
+
+Maximum once per user session
+
+Only relevant for information not already in the id_token
+
+The client application (browser for SPA/client-side apps, server for server-side apps)
+/as/introspect.oauth2
+
+
+
+Alternative method to check JWT validity and metadata
+
+Optional
+
+Maximum once per user session
+
+The API
+/idp/startSLO.ping
+
+
+
+Endpoint to trigger logout	
+Optional 
+
+Once per user session
+
+See "logout" topic below this table for additional details
+
+The client application
+
+LOGOUT 
+
+> OneAccount 
+
+Connect to https://onelogin.axa.com/idp/startSLO.ping to trigger idp initiated logout.
+
+
+
+
+
+Client credentials (M2M)
+
+OAUTH endpoints
+
+Description
+
+Reference usage frequency
+
+Accessed By
+/.well-known/openid-configuration
+
+
+
+Static enumeration of OAUTH endpoints
+
+Optional
+
+Maximum once per M2M session
+
+Only relevant if OAUTH endpoints not hard coded in the application
+
+The client server
+/pf/JWKS
+
+
+
+Java web keys used to sign the tokens = static info
+
+Optional from application point of view as ESG is checking that
+
+Maximum once per M2M session
+
+Ideally only to be read/checked if the flow fails
+
+The API server
+/as/token.oauth2
+
+
+
+Client credentials (M2M) > deliver an access_token upon request
+
+Maximum once per ‘access token lifetime’ per client_id per scope
+
+ Max per 24hrs = 24 / token lifetime x scopes
+
+Default access token lifetime for Client_credentials = 1hr
+
+Lifetime can be customized per application  (24hrs max for One Account)
+
+The client server
+/as/introspect.oauth2
+
+
+
+Alternative method to check JWT validity and metadata
+
+Optional
+
+Maximum once per M2M session
+
+The API server
