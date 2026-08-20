@@ -7,3 +7,6 @@
   "scope": "openid profile email"
 }
 "When we POST the registration request, we'll send a JSON body describing our client. We want to confirm the required fields so the call isn't rejected. Here's the payload we're planning to send — please confirm it's complete or tell us what to add/change:"
+"Sure — to be concrete, here's the registration request we're planning to send to /as/clients.oauth2:
+[the JSON payload]
+Our questions are: (1) what credential authorises this call — an initial access token, mTLS, or is it not self-service; (2) are any additional attributes mandatory beyond what's shown; (3) will the response return a client_secret, or do you require private_key_jwt (in which case, how do we register our public key)?"
