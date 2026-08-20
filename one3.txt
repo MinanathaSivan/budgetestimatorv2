@@ -1,0 +1,58 @@
+1. Authentication session duration per policy
+
+
+Normal 	
+600 Max Timeout
+
+120 IDLE Timeout
+
+Normal session will give transparent access (session reusage) to any Normal level OA application
+Reinforced
+
+240 Max Timeout
+
+60 IDLE Timeout
+
+Reinforced session will give transparent access (session reusage) to any Normal and reinforced level OA application
+Strong
+
+120 Max Timeout
+
+20 IDLE Timeout
+
+Strong session will give transparent access (session reusage) to any Normal and Reinforced level OA application
+2. OAUTH OIDC token durations
+ACCESS TOKEN DURATION PER USE CASE
+
+the table below summerize the access_token durations in all oneaccount use cases : 
+
+Client_Credentials  (M2M)
+
+Client_Credentials 
+
+1H	min = 1H  and max is 24H
+Authorization_code using only GAD as repository 
+
+<ENV>_GENERAL_AZ_ATM
+
+<ENV>_GENERAL_Ext_AZ_ATM
+
+<ENV>_GENERAL_FullExt_AZ_ATM
+
+1H	min = 1H  and max is 24H
+Authorization_code for Belgium application (relying on BE AD for user attributes) 
+
+<ENV>_DEV_GENERAL_BE_AD_Ext_AZ_ATM
+
+<ENV>_GENERAL_BE_AD_FullExt_AZ_ATM
+
+<ENV>_GENERAL_BE_AD_FullExt_GADAZ_ATM
+
+2H	min= 2H  and max is 24H
+Authorization_code for France application (relying on FR AD WAC for user attributes) 
+
+<ENV>_GENERAL_FR_AD_Ext_AZ_ATM
+
+<ENV>_GENERAL_FR_AD_FullExt_AZ_ATM
+
+2H	min= 2H  and max is 24H
