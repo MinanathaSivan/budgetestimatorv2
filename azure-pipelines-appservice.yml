@@ -1,7 +1,13 @@
 # azure-pipelines-appservice.yml
-# DEPLOY-ONLY: the self-hosted agent has no internet, so it does NOT build.
-# The bundle (server.js + api + dist + node_modules) is pre-built and uploaded
-# to blob storage. This pipeline fetches it and deploys to the ASE staging slot.
+# DEPLOY-ONLY pipeline for the locked-down self-hosted agent (no internet).
+# The bundle (server.js + api + dist + node_modules) is built locally and
+# uploaded to blob storage. This pipeline downloads it via a SAS URL (curl)
+# and deploys to the ASE staging slot. No Node, npm, or az CLI needed on the agent.
+#
+# Prereqs in the 'web-development' variable group:
+#   azureSubscription, appName, resourceGroup, slotName,
+#   TABLES_CONNECTION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, REFRESH_SECRET,
+#   BUNDLE_SAS_URL  (secret; full https SAS URL to app-bundle.zip)
 
 trigger:
   branches:
@@ -11,13 +17,7 @@ pool:
   name: z-ago-devops-agent-np-as1-vmss01
 
 variables:
-  - group: web-development        # azureSubscription, appName, resourceGroup, slotName, secrets
-  - name: storageAccount
-    value: '<YOUR_STORAGE_ACCOUNT>'   # <-- fill in
-  - name: storageContainer
-    value: '<YOUR_CONTAINER>'         # <-- fill in (e.g. builds)
-  - name: bundleName
-    value: 'app-bundle.zip'
+  - group: web-development
 
 stages:
 - stage: DeployStaging
@@ -28,23 +28,12 @@ stages:
       runOnce:
         deploy:
           steps:
-          # 1. Fetch the pre-built bundle from blob storage.
-          #    Uses the service connection identity — no storage keys in the pipeline.
-          - task: AzureCLI@2
-            displayName: 'Fetch build bundle from blob'
-            inputs:
-              azureSubscription: '$(azureSubscription)'
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                set -e
-                az storage blob download \
-                  --account-name "$(storageAccount)" \
-                  --container-name "$(storageContainer)" \
-                  --name "$(bundleName)" \
-                  --file "$(Pipeline.Workspace)/app.zip" \
-                  --auth-mode login
-                ls -la "$(Pipeline.Workspace)/app.zip"
+          # 1. Download the pre-built bundle from blob storage using a SAS URL.
+          - script: |
+              set -e
+              curl -sSL -o "$(Pipeline.Workspace)/app.zip" "$(BUNDLE_SAS_URL)"
+              ls -la "$(Pipeline.Workspace)/app.zip"
+            displayName: 'Fetch build bundle from blob (SAS)'
 
           # 2. Push app settings to the staging slot.
           - task: AzureAppServiceSettings@1
@@ -79,6 +68,8 @@ stages:
               runtimeStack: 'NODE|24-lts'
               startUpCommand: 'node server.js'
 
+# Uncomment when ready to promote staging -> production (add manual approval on the
+# 'Production' environment in Azure DevOps first).
 # - stage: SwapToProduction
 #   dependsOn: DeployStaging
 #   jobs:
