@@ -1,58 +1,214 @@
-trigger:
-  branches:
-    include: [ main ]
-
-variables:
-  - group: web-development
-
-stages:
-- stage: Build
-  jobs:
-  - job: build
-    pool:
-      vmImage: ubuntu-latest          # Microsoft-hosted: HAS internet for npm/build
-    steps:
-    - task: NodeTool@0
-      inputs: { versionSpec: '24.x' }
-    - script: |
-        cd app && npm ci && npm run build && cd ..
-        npm ci --omit=dev
-        mkdir -p deploy
-        cp server.js package.json deploy/
-        cp -r api deploy/api
-        cp -r node_modules deploy/node_modules
-        cp -r app/dist deploy/dist
-      displayName: 'Build + assemble bundle'
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: 'deploy'
-        includeRootFolder: false
-        archiveType: 'zip'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
-    - publish: '$(Build.ArtifactStagingDirectory)/app.zip'
-      artifact: appbundle              # <-- the DevOps artifact
-
-- stage: DeployStaging
-  dependsOn: Build
-  jobs:
-  - deployment: deployStaging
-    pool:
-      name: z-ago-devops-agent-np-as1-vmss01   # self-hosted: reaches the ASE
-    environment: 'Staging'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - download: current
-            artifact: appbundle        # <-- pulls the artifact via DevOps
-          - task: AzureWebApp@1
-            inputs:
-              azureSubscription: '$(azureSubscription)'
-              appType: 'webAppLinux'
-              appName: '$(appName)'
-              deployToSlotOrASE: true
-              resourceGroupName: '$(resourceGroup)'
-              slotName: '$(slotName)'
-              package: '$(Pipeline.Workspace)/appbundle/app.zip'
-              runtimeStack: 'NODE|24-lts'
-              startUpCommand: 'node server.js'
+2026-08-27T14:01:36.7863390Z ##[section]Starting: Build + assemble bundle
+2026-08-27T14:01:36.7877300Z ==============================================================================
+2026-08-27T14:01:36.7877671Z Task         : Command line
+2026-08-27T14:01:36.7877918Z Description  : Run a command line script using Bash on Linux and macOS and cmd.exe on Windows
+2026-08-27T14:01:36.7878275Z Version      : 2.279.0
+2026-08-27T14:01:36.7878506Z Author       : Microsoft Corporation
+2026-08-27T14:01:36.7878761Z Help         : https://docs.microsoft.com/azure/devops/pipelines/tasks/utility/command-line
+2026-08-27T14:01:36.7879100Z ==============================================================================
+2026-08-27T14:01:36.9629336Z Generating script.
+2026-08-27T14:01:36.9645125Z ========================== Starting Command Output ===========================
+2026-08-27T14:01:36.9672756Z [command]/usr/bin/bash --noprofile --norc /home/vsts/work/_temp/04f4fa84-1b4c-4515-83d1-a9c3cd5c75e1.sh
+2026-08-27T14:01:41.3841372Z npm error code EUSAGE
+2026-08-27T14:01:41.3906033Z npm error
+2026-08-27T14:01:41.3910196Z npm error The `npm ci` command can only install with an existing package-lock.json or
+2026-08-27T14:01:41.3926758Z npm error npm-shrinkwrap.json with lockfileVersion >= 1. Run an install with npm@5 or
+2026-08-27T14:01:41.3948996Z npm error later to generate a package-lock.json file, then try again.
+2026-08-27T14:01:41.3963622Z npm error
+2026-08-27T14:01:41.3964348Z npm error Clean install a project
+2026-08-27T14:01:41.3964900Z npm error
+2026-08-27T14:01:41.3965424Z npm error Usage:
+2026-08-27T14:01:41.3966244Z npm error npm ci
+2026-08-27T14:01:41.3966854Z npm error
+2026-08-27T14:01:41.3967504Z npm error Options:
+2026-08-27T14:01:41.3968121Z npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+2026-08-27T14:01:41.3968822Z npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+2026-08-27T14:01:41.3969570Z npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+2026-08-27T14:01:41.3970333Z npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts]
+2026-08-27T14:01:41.3970957Z npm error [--allow-directory <all|none|root>] [--allow-file <all|none|root>]
+2026-08-27T14:01:41.3971797Z npm error [--allow-git <all|none|root>] [--allow-remote <all|none|root>]
+2026-08-27T14:01:41.3972409Z npm error [--allow-scripts <package-list> [--allow-scripts <package-list> ...]]
+2026-08-27T14:01:41.3973081Z npm error [--strict-allow-scripts] [--dangerously-allow-all-scripts] [--no-audit]
+2026-08-27T14:01:41.3973711Z npm error [--no-bin-links] [--no-fund] [--dry-run]
+2026-08-27T14:01:41.3974329Z npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+2026-08-27T14:01:41.3974947Z npm error [--workspaces] [--include-workspace-root] [--install-links]
+2026-08-27T14:01:41.3975548Z npm error
+2026-08-27T14:01:41.3976376Z npm error   --install-strategy
+2026-08-27T14:01:41.3976755Z npm error     Sets the strategy for installing packages in node_modules.
+2026-08-27T14:01:41.3977082Z npm error
+2026-08-27T14:01:41.3977349Z npm error   --legacy-bundling
+2026-08-27T14:01:41.3977725Z npm error     Instead of hoisting package installs in `node_modules`, install packages
+2026-08-27T14:01:41.3978166Z npm error
+2026-08-27T14:01:41.3978459Z npm error   --global-style
+2026-08-27T14:01:41.3978760Z npm error     Only install direct dependencies in the top level `node_modules`,
+2026-08-27T14:01:41.3979033Z npm error
+2026-08-27T14:01:41.3979276Z npm error   --omit
+2026-08-27T14:01:41.3979568Z npm error     Dependency types to omit from the installation tree on disk.
+2026-08-27T14:01:41.3979847Z npm error
+2026-08-27T14:01:41.3980082Z npm error   --include
+2026-08-27T14:01:41.3980396Z npm error     Option that allows for defining which types of dependencies to install.
+2026-08-27T14:01:41.3980674Z npm error
+2026-08-27T14:01:41.3980918Z npm error   --strict-peer-deps
+2026-08-27T14:01:41.3981213Z npm error     If set to `true`, and `--legacy-peer-deps` is not set, then _any_
+2026-08-27T14:01:41.3981550Z npm error
+2026-08-27T14:01:41.3981720Z npm error   --foreground-scripts
+2026-08-27T14:01:41.3981920Z npm error     Run all build scripts (ie, `preinstall`, `install`, and
+2026-08-27T14:01:41.3982105Z npm error
+2026-08-27T14:01:41.3982259Z npm error   --ignore-scripts
+2026-08-27T14:01:41.3982463Z npm error     If true, npm does not run scripts specified in package.json files.
+2026-08-27T14:01:41.3982649Z npm error
+2026-08-27T14:01:41.3982804Z npm error   --allow-directory
+2026-08-27T14:01:41.3983105Z npm error     Limits the ability for npm to install dependencies from directories.
+2026-08-27T14:01:41.3983301Z npm error
+2026-08-27T14:01:41.3983459Z npm error   --allow-file
+2026-08-27T14:01:41.3983664Z npm error     Limits the ability for npm to install dependencies from tarball files.
+2026-08-27T14:01:41.3983842Z npm error
+2026-08-27T14:01:41.3984003Z npm error   --allow-git
+2026-08-27T14:01:41.3984204Z npm error     Limits the ability for npm to fetch dependencies from git references.
+2026-08-27T14:01:41.3984398Z npm error
+2026-08-27T14:01:41.3984552Z npm error   --allow-remote
+2026-08-27T14:01:41.3984749Z npm error     Limits the ability for npm to fetch dependencies from urls.
+2026-08-27T14:01:41.3984924Z npm error
+2026-08-27T14:01:41.3985080Z npm error   --allow-scripts
+2026-08-27T14:01:41.3985287Z npm error     Comma-separated list of packages whose install-time lifecycle scripts
+2026-08-27T14:01:41.3985539Z npm error
+2026-08-27T14:01:41.3985700Z npm error   --strict-allow-scripts
+2026-08-27T14:01:41.3986272Z npm error     If `true`, turn the install-script policy from a warning into a hard
+2026-08-27T14:01:41.3986523Z npm error
+2026-08-27T14:01:41.3986692Z npm error   --dangerously-allow-all-scripts
+2026-08-27T14:01:41.3986905Z npm error     If `true`, bypass the `allowScripts` policy entirely and run every
+2026-08-27T14:01:41.3987085Z npm error
+2026-08-27T14:01:41.3987241Z npm error   --audit
+2026-08-27T14:01:41.3987439Z npm error     When "true" submit audit reports alongside the current npm command to the
+2026-08-27T14:01:41.3987627Z npm error
+2026-08-27T14:01:41.3987779Z npm error   --bin-links
+2026-08-27T14:01:41.3987975Z npm error     Tells npm to create symlinks (or `.cmd` shims on Windows) for package
+2026-08-27T14:01:41.3988269Z npm error
+2026-08-27T14:01:41.3988417Z npm error   --fund
+2026-08-27T14:01:41.3988610Z npm error     When "true" displays the message at the end of each `npm install`
+2026-08-27T14:01:41.3988782Z npm error
+2026-08-27T14:01:41.3988936Z npm error   --dry-run
+2026-08-27T14:01:41.3989130Z npm error     Indicates that you don't want npm to make any changes and that it should
+2026-08-27T14:01:41.3989312Z npm error
+2026-08-27T14:01:41.3989468Z npm error   -w|--workspace
+2026-08-27T14:01:41.3989663Z npm error     Enable running a command in the context of the configured workspaces of the
+2026-08-27T14:01:41.3989852Z npm error
+2026-08-27T14:01:41.3990006Z npm error   --workspaces
+2026-08-27T14:01:41.3990212Z npm error     Set to true to run the command in the context of **all** configured
+2026-08-27T14:01:41.3990396Z npm error
+2026-08-27T14:01:41.3990556Z npm error   --include-workspace-root
+2026-08-27T14:01:41.3990767Z npm error     Include the workspace root when workspaces are enabled for a command.
+2026-08-27T14:01:41.3990948Z npm error
+2026-08-27T14:01:41.3991111Z npm error   --install-links
+2026-08-27T14:01:41.3991305Z npm error     When set file: protocol dependencies will be packed and installed as
+2026-08-27T14:01:41.3991486Z npm error
+2026-08-27T14:01:41.3991630Z npm error
+2026-08-27T14:01:41.3991813Z npm error aliases: clean-install, ic, install-clean, isntall-clean
+2026-08-27T14:01:41.3991995Z npm error
+2026-08-27T14:01:41.3992164Z npm error Run "npm help ci" for more info
+2026-08-27T14:01:41.3992397Z npm error A complete log of this run can be found in: /home/vsts/.npm/_logs/2026-08-27T14_01_39_601Z-debug-0.log
+2026-08-27T14:01:41.7396914Z npm error code EUSAGE
+2026-08-27T14:01:41.7504187Z npm error
+2026-08-27T14:01:41.7526666Z npm error The `npm ci` command can only install with an existing package-lock.json or
+2026-08-27T14:01:41.7536942Z npm error npm-shrinkwrap.json with lockfileVersion >= 1. Run an install with npm@5 or
+2026-08-27T14:01:41.7540860Z npm error later to generate a package-lock.json file, then try again.
+2026-08-27T14:01:41.7541381Z npm error
+2026-08-27T14:01:41.7541877Z npm error Clean install a project
+2026-08-27T14:01:41.7542295Z npm error
+2026-08-27T14:01:41.7561484Z npm error Usage:
+2026-08-27T14:01:41.7561951Z npm error npm ci
+2026-08-27T14:01:41.7562362Z npm error
+2026-08-27T14:01:41.7562755Z npm error Options:
+2026-08-27T14:01:41.7563202Z npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+2026-08-27T14:01:41.7563719Z npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+2026-08-27T14:01:41.7564246Z npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+2026-08-27T14:01:41.7564705Z npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts]
+2026-08-27T14:01:41.7565145Z npm error [--allow-directory <all|none|root>] [--allow-file <all|none|root>]
+2026-08-27T14:01:41.7565540Z npm error [--allow-git <all|none|root>] [--allow-remote <all|none|root>]
+2026-08-27T14:01:41.7566402Z npm error [--allow-scripts <package-list> [--allow-scripts <package-list> ...]]
+2026-08-27T14:01:41.7566895Z npm error [--strict-allow-scripts] [--dangerously-allow-all-scripts] [--no-audit]
+2026-08-27T14:01:41.7567322Z npm error [--no-bin-links] [--no-fund] [--dry-run]
+2026-08-27T14:01:41.7567721Z npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+2026-08-27T14:01:41.7568158Z npm error [--workspaces] [--include-workspace-root] [--install-links]
+2026-08-27T14:01:41.7568519Z npm error
+2026-08-27T14:01:41.7568872Z npm error   --install-strategy
+2026-08-27T14:01:41.7569275Z npm error     Sets the strategy for installing packages in node_modules.
+2026-08-27T14:01:41.7569638Z npm error
+2026-08-27T14:01:41.7569967Z npm error   --legacy-bundling
+2026-08-27T14:01:41.7570379Z npm error     Instead of hoisting package installs in `node_modules`, install packages
+2026-08-27T14:01:41.7570753Z npm error
+2026-08-27T14:01:41.7571092Z npm error   --global-style
+2026-08-27T14:01:41.7571667Z npm error     Only install direct dependencies in the top level `node_modules`,
+2026-08-27T14:01:41.7572048Z npm error
+2026-08-27T14:01:41.7572371Z npm error   --omit
+2026-08-27T14:01:41.7572757Z npm error     Dependency types to omit from the installation tree on disk.
+2026-08-27T14:01:41.7573116Z npm error
+2026-08-27T14:01:41.7573455Z npm error   --include
+2026-08-27T14:01:41.7573896Z npm error     Option that allows for defining which types of dependencies to install.
+2026-08-27T14:01:41.7574276Z npm error
+2026-08-27T14:01:41.7574654Z npm error   --strict-peer-deps
+2026-08-27T14:01:41.7575046Z npm error     If set to `true`, and `--legacy-peer-deps` is not set, then _any_
+2026-08-27T14:01:41.7575414Z npm error
+2026-08-27T14:01:41.7575751Z npm error   --foreground-scripts
+2026-08-27T14:01:41.7577164Z npm error     Run all build scripts (ie, `preinstall`, `install`, and
+2026-08-27T14:01:41.7577638Z npm error
+2026-08-27T14:01:41.7578091Z npm error   --ignore-scripts
+2026-08-27T14:01:41.7578601Z npm error     If true, npm does not run scripts specified in package.json files.
+2026-08-27T14:01:41.7579094Z npm error
+2026-08-27T14:01:41.7579536Z npm error   --allow-directory
+2026-08-27T14:01:41.7580055Z npm error     Limits the ability for npm to install dependencies from directories.
+2026-08-27T14:01:41.7580518Z npm error
+2026-08-27T14:01:41.7580917Z npm error   --allow-file
+2026-08-27T14:01:41.7581366Z npm error     Limits the ability for npm to install dependencies from tarball files.
+2026-08-27T14:01:41.7581823Z npm error
+2026-08-27T14:01:41.7582201Z npm error   --allow-git
+2026-08-27T14:01:41.7582661Z npm error     Limits the ability for npm to fetch dependencies from git references.
+2026-08-27T14:01:41.7583110Z npm error
+2026-08-27T14:01:41.7583507Z npm error   --allow-remote
+2026-08-27T14:01:41.7584126Z npm error     Limits the ability for npm to fetch dependencies from urls.
+2026-08-27T14:01:41.7584567Z npm error
+2026-08-27T14:01:41.7584958Z npm error   --allow-scripts
+2026-08-27T14:01:41.7585421Z npm error     Comma-separated list of packages whose install-time lifecycle scripts
+2026-08-27T14:01:41.7586157Z npm error
+2026-08-27T14:01:41.7586543Z npm error   --strict-allow-scripts
+2026-08-27T14:01:41.7586955Z npm error     If `true`, turn the install-script policy from a warning into a hard
+2026-08-27T14:01:41.7587320Z npm error
+2026-08-27T14:01:41.7587677Z npm error   --dangerously-allow-all-scripts
+2026-08-27T14:01:41.7588078Z npm error     If `true`, bypass the `allowScripts` policy entirely and run every
+2026-08-27T14:01:41.7588458Z npm error
+2026-08-27T14:01:41.7588778Z npm error   --audit
+2026-08-27T14:01:41.7589172Z npm error     When "true" submit audit reports alongside the current npm command to the
+2026-08-27T14:01:41.7589543Z npm error
+2026-08-27T14:01:41.7589879Z npm error   --bin-links
+2026-08-27T14:01:41.7590263Z npm error     Tells npm to create symlinks (or `.cmd` shims on Windows) for package
+2026-08-27T14:01:41.7590632Z npm error
+2026-08-27T14:01:41.7590951Z npm error   --fund
+2026-08-27T14:01:41.7591341Z npm error     When "true" displays the message at the end of each `npm install`
+2026-08-27T14:01:41.7591703Z npm error
+2026-08-27T14:01:41.7592039Z npm error   --dry-run
+2026-08-27T14:01:41.7592463Z npm error     Indicates that you don't want npm to make any changes and that it should
+2026-08-27T14:01:41.7592904Z npm error
+2026-08-27T14:01:41.7593261Z npm error   -w|--workspace
+2026-08-27T14:01:41.7593687Z npm error     Enable running a command in the context of the configured workspaces of the
+2026-08-27T14:01:41.7594098Z npm error
+2026-08-27T14:01:41.7594424Z npm error   --workspaces
+2026-08-27T14:01:41.7594824Z npm error     Set to true to run the command in the context of **all** configured
+2026-08-27T14:01:41.7595190Z npm error
+2026-08-27T14:01:41.7595546Z npm error   --include-workspace-root
+2026-08-27T14:01:41.7596283Z npm error     Include the workspace root when workspaces are enabled for a command.
+2026-08-27T14:01:41.7596791Z npm error
+2026-08-27T14:01:41.7597387Z npm error   --install-links
+2026-08-27T14:01:41.7597888Z npm error     When set file: protocol dependencies will be packed and installed as
+2026-08-27T14:01:41.7598359Z npm error
+2026-08-27T14:01:41.7598766Z npm error
+2026-08-27T14:01:41.7599251Z npm error aliases: clean-install, ic, install-clean, isntall-clean
+2026-08-27T14:01:41.7599711Z npm error
+2026-08-27T14:01:41.7600202Z npm error Run "npm help ci" for more info
+2026-08-27T14:01:41.7600713Z npm error A complete log of this run can be found in: /home/vsts/.npm/_logs/2026-08-27T14_01_41_496Z-debug-0.log
+2026-08-27T14:01:41.7704502Z cp: cannot stat 'server.js': No such file or directory
+2026-08-27T14:01:41.7737076Z cp: cannot stat 'api': No such file or directory
+2026-08-27T14:01:41.7756749Z cp: cannot stat 'node_modules': No such file or directory
+2026-08-27T14:01:41.7767878Z cp: cannot stat 'app/dist': No such file or directory
+2026-08-27T14:01:41.7786888Z 
+2026-08-27T14:01:41.7843446Z ##[error]Bash exited with code '1'.
+2026-08-27T14:01:41.7888320Z ##[section]Finishing: Build + assemble bundle
