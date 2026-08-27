@@ -1,18 +1,1 @@
-Condition evaluation
-Starting: Deploy to staging slot
-==============================================================================
-Task         : Azure Web App
-Description  : Deploy an Azure Web App for Linux or Windows
-Version      : 1.278.0
-Author       : Microsoft Corporation
-Help         : https://aka.ms/azurewebapptroubleshooting
-==============================================================================
-Got service connection details for Azure App Service:'zagobestdv01ae1web01'
-Package deployment using ZIP Deploy initiated.
-##[error]Failed to deploy web package to App Service.
-##[warning]Can't find loc string for key: KuduStackTraceURL
-##[error]KuduStackTraceURL https://$zagobestdv01ae1web01__staging:***@zagobestdv01ae1web01-staging.scm.z-ago-best-dv01-ae1-ase01.appserviceenvironment.net/api/vfs/LogFiles/kudu/trace
-##[error]Error: Error: Failed to deploy web package to App Service. Not Found (CODE: 404)
-Successfully updated deployment History at https://zagobestdv01ae1web01-staging.scm.z-ago-best-dv01-ae1-ase01.appserviceenvironment.net/api/deployments/111787826839204
-App Service Application URL: https://zagobestdv01ae1web01-staging.z-ago-best-dv01-ae1-ase01.appserviceenvironment.net
-Finishing: Deploy to staging slot
+az webapp deployment slot list -g z-ago-best-dv01-ae1-rgp01 -n zagobestdv01ae1web01 -o table
