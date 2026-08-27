@@ -11,7 +11,10 @@ trigger:
     include: [ main ]
 
 pool:
+  name: z-ago-devops-agent-np-as1-vmss01
   vmImage: ubuntu-latest
+
+
 
 variables:
   - group: web-development        # azureSubscription, appName, resourceGroup, slotName, secrets
@@ -28,7 +31,7 @@ stages:
 
     - script: |
         cd app
-        npm ci
+        npm install
         npm run build
       displayName: 'Build SPA (app/dist)'
 
@@ -97,21 +100,21 @@ stages:
               runtimeStack: 'NODE|24-lts'
               startUpCommand: 'node server.js'
 
-- stage: SwapToProduction
-  dependsOn: DeployStaging
-  jobs:
-  - deployment: swap
-    environment: 'Production'      # add a manual approval check on this environment
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: AzureAppServiceManage@0
-            displayName: 'Swap staging -> production'
-            inputs:
-              azureSubscription: '$(azureSubscription)'
-              action: 'Swap Slots'
-              webAppName: '$(appName)'
-              resourceGroupName: '$(resourceGroup)'
-              sourceSlot: '$(slotName)'
-              targetSlot: 'production'
+# - stage: SwapToProduction
+#   dependsOn: DeployStaging
+#   jobs:
+#   - deployment: swap
+#     environment: 'Production'      # add a manual approval check on this environment
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - task: AzureAppServiceManage@0
+#             displayName: 'Swap staging -> production'
+#             inputs:
+#               azureSubscription: '$(azureSubscription)'
+#               action: 'Swap Slots'
+#               webAppName: '$(appName)'
+#               resourceGroupName: '$(resourceGroup)'
+#               sourceSlot: '$(slotName)'
+#               targetSlot: 'production'
