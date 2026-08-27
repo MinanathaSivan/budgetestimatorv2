@@ -1,10 +1,7 @@
 # azure-pipelines-appservice.yml
-# Deploys CODE to the existing App Service zagobestdv01ae1web01.
-# Does NOT create infrastructure — the app, plan, slot, private endpoint and
-# Easy Auth are provisioned once in the portal/CLI.
-#
-# Flow: build SPA -> bundle server+api+dist -> deploy to STAGING slot ->
-# push app settings -> manual approval -> swap staging into production.
+# DEPLOY-ONLY: the self-hosted agent has no internet, so it does NOT build.
+# The bundle (server.js + api + dist + node_modules) is pre-built and uploaded
+# to blob storage. This pipeline fetches it and deploys to the ASE staging slot.
 
 trigger:
   branches:
@@ -12,52 +9,18 @@ trigger:
 
 pool:
   name: z-ago-devops-agent-np-as1-vmss01
-  vmImage: ubuntu-latest
-
-
 
 variables:
   - group: web-development        # azureSubscription, appName, resourceGroup, slotName, secrets
+  - name: storageAccount
+    value: '<YOUR_STORAGE_ACCOUNT>'   # <-- fill in
+  - name: storageContainer
+    value: '<YOUR_CONTAINER>'         # <-- fill in (e.g. builds)
+  - name: bundleName
+    value: 'app-bundle.zip'
 
 stages:
-- stage: Build
-  jobs:
-  - job: build
-    steps:
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '24.x'      # match the App Service runtime NODE|24-lts
-      displayName: 'Use Node 24'
-
-    - script: |
-        cd app
-        npm install
-        npm run build
-      displayName: 'Build SPA (app/dist)'
-
-    - script: |
-        set -e
-        mkdir -p deploy
-        cp server.js package.json deploy/
-        cp -r api deploy/api
-        cp -r app/dist deploy/dist
-        cd deploy
-        npm install --omit=dev
-      displayName: 'Assemble server bundle'
-
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: 'deploy'
-        includeRootFolder: false
-        archiveType: 'zip'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
-        replaceExistingArchive: true
-
-    - publish: '$(Build.ArtifactStagingDirectory)/app.zip'
-      artifact: app
-
 - stage: DeployStaging
-  dependsOn: Build
   jobs:
   - deployment: deployStaging
     environment: 'Staging'
@@ -65,10 +28,25 @@ stages:
       runOnce:
         deploy:
           steps:
-          - download: current
-            artifact: app
+          # 1. Fetch the pre-built bundle from blob storage.
+          #    Uses the service connection identity — no storage keys in the pipeline.
+          - task: AzureCLI@2
+            displayName: 'Fetch build bundle from blob'
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -e
+                az storage blob download \
+                  --account-name "$(storageAccount)" \
+                  --container-name "$(storageContainer)" \
+                  --name "$(bundleName)" \
+                  --file "$(Pipeline.Workspace)/app.zip" \
+                  --auth-mode login
+                ls -la "$(Pipeline.Workspace)/app.zip"
 
-          # Push application settings to the STAGING slot before deploying code.
+          # 2. Push app settings to the staging slot.
           - task: AzureAppServiceSettings@1
             displayName: 'Apply app settings (staging slot)'
             inputs:
@@ -82,13 +60,14 @@ stages:
                   { "name": "AWS_ACCESS_KEY_ID",    "value": "$(AWS_ACCESS_KEY_ID)",    "slotSetting": false },
                   { "name": "AWS_SECRET_ACCESS_KEY","value": "$(AWS_SECRET_ACCESS_KEY)","slotSetting": false },
                   { "name": "REFRESH_SECRET",       "value": "$(REFRESH_SECRET)",       "slotSetting": false },
-                  { "name": "WEBSITE_RUN_FROM_PACKAGE",        "value": "1",     "slotSetting": false },
-                  { "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",  "value": "false", "slotSetting": false },
-                  { "name": "WEBSITES_PORT",                   "value": "8080",  "slotSetting": false }
+                  { "name": "WEBSITE_RUN_FROM_PACKAGE",       "value": "1",     "slotSetting": false },
+                  { "name": "SCM_DO_BUILD_DURING_DEPLOYMENT", "value": "false", "slotSetting": false },
+                  { "name": "WEBSITES_PORT",                  "value": "8080",  "slotSetting": false }
                 ]
 
+          # 3. Deploy the bundle to the staging slot.
           - task: AzureWebApp@1
-            displayName: 'Deploy code to staging slot'
+            displayName: 'Deploy to staging slot'
             inputs:
               azureSubscription: '$(azureSubscription)'
               appType: 'webAppLinux'
@@ -96,7 +75,7 @@ stages:
               deployToSlotOrASE: true
               resourceGroupName: '$(resourceGroup)'
               slotName: '$(slotName)'
-              package: '$(Pipeline.Workspace)/app/app.zip'
+              package: '$(Pipeline.Workspace)/app.zip'
               runtimeStack: 'NODE|24-lts'
               startUpCommand: 'node server.js'
 
@@ -104,7 +83,7 @@ stages:
 #   dependsOn: DeployStaging
 #   jobs:
 #   - deployment: swap
-#     environment: 'Production'      # add a manual approval check on this environment
+#     environment: 'Production'
 #     strategy:
 #       runOnce:
 #         deploy:
