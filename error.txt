@@ -1,12 +1,70 @@
-{
-  "client_name": "Cloud Budget Estimator (DEV)",
-  "redirect_uris": ["https://uat-axa-cloud-budget-estimator.axa.com/.auth/login/onelogin/callback"],
-  "grant_types": ["authorization_code"],
-  "response_types": ["code"],
-  "token_endpoint_auth_method": "client_secret_basic",
-  "scope": "openid profile email"
-}
-"When we POST the registration request, we'll send a JSON body describing our client. We want to confirm the required fields so the call isn't rejected. Here's the payload we're planning to send — please confirm it's complete or tell us what to add/change:"
-"Sure — to be concrete, here's the registration request we're planning to send to /as/clients.oauth2:
-[the JSON payload]
-Our questions are: (1) what credential authorises this call — an initial access token, mTLS, or is it not self-service; (2) are any additional attributes mandatory beyond what's shown; (3) will the response return a client_secret, or do you require private_key_jwt (in which case, how do we register our public key)?"
+2026-08-27T08:23:05.8012210Z ##[debug]Evaluating condition for step: 'Use Node 24'
+2026-08-27T08:23:05.8013971Z ##[debug]Evaluating: SucceededNode()
+2026-08-27T08:23:05.8014410Z ##[debug]Evaluating SucceededNode:
+2026-08-27T08:23:05.8015169Z ##[debug]Result: True
+2026-08-27T08:23:05.8016533Z ##[section]Starting: Use Node 24
+2026-08-27T08:23:05.8024866Z ==============================================================================
+2026-08-27T08:23:05.8025054Z Task         : Node.js tool installer
+2026-08-27T08:23:05.8025165Z Description  : Finds or downloads and caches the specified version spec of Node.js and adds it to the PATH
+2026-08-27T08:23:05.8025340Z Version      : 0.272.1
+2026-08-27T08:23:05.8025457Z Author       : Microsoft Corporation
+2026-08-27T08:23:05.8025567Z Help         : https://docs.microsoft.com/azure/devops/pipelines/tasks/tool/node-js
+2026-08-27T08:23:05.8025721Z ==============================================================================
+2026-08-27T08:23:07.8676265Z ##[debug]Using legacy node selection path for handler node resolution.
+2026-08-27T08:23:08.8779078Z ##[debug]Using node path: /agent/externals/node20_1/bin/node
+2026-08-27T08:23:08.9595344Z ##[debug]system.debug=True
+2026-08-27T08:23:08.9599336Z ##[debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+2026-08-27T08:23:08.9679408Z ##[debug]agent.TempDirectory=/agent/_work/_temp
+2026-08-27T08:23:08.9709218Z ##[debug]loading inputs and endpoints
+2026-08-27T08:23:08.9729120Z ##[debug]loading SECRET_AWS_ACCESS_KEY_ID
+2026-08-27T08:23:08.9736045Z ##[debug]loading SECRET_TABLES_CONNECTION
+2026-08-27T08:23:08.9737998Z ##[debug]loading SECRET_REFRESH_SECRET
+2026-08-27T08:23:08.9739739Z ##[debug]loading SECRET_SYSTEM_ACCESSTOKEN
+2026-08-27T08:23:08.9741363Z ##[debug]loading SECRET_AWS_SECRET_ACCESS_KEY
+2026-08-27T08:23:08.9742933Z ##[debug]loading INPUT_VERSIONSOURCE
+2026-08-27T08:23:08.9744607Z ##[debug]loading INPUT_VERSIONSPEC
+2026-08-27T08:23:08.9746104Z ##[debug]loading INPUT_CHECKLATEST
+2026-08-27T08:23:08.9747992Z ##[debug]loading INPUT_FORCE32BIT
+2026-08-27T08:23:08.9749670Z ##[debug]loading INPUT_NODEJSMIRROR
+2026-08-27T08:23:08.9751240Z ##[debug]loading INPUT_RETRYCOUNTONDOWNLOADFAILS
+2026-08-27T08:23:08.9753988Z ##[debug]loading INPUT_DELAYBETWEENRETRIES
+2026-08-27T08:23:08.9756927Z ##[debug]loading ENDPOINT_AUTH_SYSTEMVSSCONNECTION
+2026-08-27T08:23:08.9769366Z ##[debug]loading ENDPOINT_AUTH_SCHEME_SYSTEMVSSCONNECTION
+2026-08-27T08:23:08.9771312Z ##[debug]loading ENDPOINT_AUTH_PARAMETER_SYSTEMVSSCONNECTION_ACCESSTOKEN
+2026-08-27T08:23:08.9772952Z ##[debug]loaded 15
+2026-08-27T08:23:08.9774340Z ##[debug]Agent.ProxyUrl=undefined
+2026-08-27T08:23:08.9775800Z ##[debug]Agent.CAInfo=undefined
+2026-08-27T08:23:08.9777421Z ##[debug]Agent.ClientCert=undefined
+2026-08-27T08:23:08.9779111Z ##[debug]Agent.SkipCertValidation=undefined
+2026-08-27T08:23:08.9947421Z ##[debug]Agent.ProxyUrl=undefined
+2026-08-27T08:23:08.9950438Z ##[debug]Agent.CAInfo=undefined
+2026-08-27T08:23:08.9952175Z ##[debug]Agent.ClientCert=undefined
+2026-08-27T08:23:08.9953944Z ##[debug]check path : /agent/_work/_tasks/NodeTool_31c75bbb-bcdf-4706-8d7c-4da6a1959bc2/0.272.1/node_modules/azure-pipelines-tool-lib/lib.json
+2026-08-27T08:23:08.9955730Z ##[debug]adding resource file: /agent/_work/_tasks/NodeTool_31c75bbb-bcdf-4706-8d7c-4da6a1959bc2/0.272.1/node_modules/azure-pipelines-tool-lib/lib.json
+2026-08-27T08:23:08.9957189Z ##[debug]system.culture=en-US
+2026-08-27T08:23:08.9997025Z ##[debug]force32bit=false
+2026-08-27T08:23:09.0000626Z ##[debug]check path : /agent/_work/_tasks/NodeTool_31c75bbb-bcdf-4706-8d7c-4da6a1959bc2/0.272.1/task.json
+2026-08-27T08:23:09.0002801Z ##[debug]adding resource file: /agent/_work/_tasks/NodeTool_31c75bbb-bcdf-4706-8d7c-4da6a1959bc2/0.272.1/task.json
+2026-08-27T08:23:09.0004360Z ##[debug]system.culture=en-US
+2026-08-27T08:23:09.0009602Z ##[debug]versionSource=spec
+2026-08-27T08:23:09.0011374Z ##[debug]versionSpec=24.x
+2026-08-27T08:23:09.0012829Z ##[debug]versionFilePath=undefined
+2026-08-27T08:23:09.0014377Z ##[debug]nodejsMirror=https://nodejs.org/dist
+2026-08-27T08:23:09.0016205Z ##[debug]retryCountOnDownloadFails=5
+2026-08-27T08:23:09.0018011Z ##[debug]delayBetweenRetries=1000
+2026-08-27T08:23:09.0019457Z ##[debug]checkLatest=false
+2026-08-27T08:23:09.0023635Z ##[debug]isExplicit: null
+2026-08-27T08:23:09.0025146Z ##[debug]explicit? false
+2026-08-27T08:23:09.0026536Z ##[debug]isExplicit: null
+2026-08-27T08:23:09.0028194Z ##[debug]explicit? false
+2026-08-27T08:23:09.0029693Z ##[debug]Agent.Version=5.277.0
+2026-08-27T08:23:09.0031281Z ##[debug]Agent.ToolsDirectory=/agent/_work/_tool
+2026-08-27T08:23:09.0032650Z ##[debug]evaluating 0 versions
+2026-08-27T08:23:09.0033982Z ##[debug]match not found
+2026-08-27T08:23:09.0035342Z ##[debug]isExplicit: null
+2026-08-27T08:23:09.0036643Z ##[debug]explicit? false
+2026-08-27T08:23:09.2694399Z ##[debug]task result: Failed
+2026-08-27T08:23:09.2721997Z ##[error]getaddrinfo ENOTFOUND nodejs.org
+2026-08-27T08:23:09.2723847Z ##[debug]Processed: ##vso[task.issue type=error;source=TaskInternal;correlationId=31d89ffa-4be2-4ad9-95e6-c7efd6ada244;]getaddrinfo ENOTFOUND nodejs.org
+2026-08-27T08:23:09.2737868Z ##[debug]Processed: ##vso[task.complete result=Failed;]getaddrinfo ENOTFOUND nodejs.org
+2026-08-27T08:23:09.2771310Z ##[section]Finishing: Use Node 24
