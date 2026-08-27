@@ -1,2 +1,14 @@
-nslookup spsprodsea3.vssps.visualstudio.com
-curl -I https://<youraccount>.blob.core.windows.net
+acbautomationuser@z-ago-dev000003:~$ nslookup spsprodsea3.vssps.visualstudio.com
+Server:         127.0.0.53
+Address:        127.0.0.53#53
+
+** server can't find spsprodsea3.vssps.visualstudio.com: NXDOMAIN
+
+acbautomationuser@z-ago-dev000003:~$ curl -I https:zagoestimtordvae1sto01.blob.core.windows.net
+curl: (3) URL rejected: Port number was not a decimal number between 0 and 65535
+acbautomationuser@z-ago-dev000003:~$ curl -I https://zagoestimtordvae1sto01.blob.core.windows.net
+HTTP/1.1 400 Value for one of the query parameters specified in the request URI is invalid.
+Transfer-Encoding: chunked
+Server: Microsoft-HTTPAPI/2.0
+x-ms-request-id: bd245dda-001e-0017-3930-36c9a2000000
+Date: Thu, 27 Aug 2026 14:30:15 GMT
