@@ -1,14 +1,160 @@
-acbautomationuser@z-ago-dev000003:~$ nslookup spsprodsea3.vssps.visualstudio.com
-Server:         127.0.0.53
-Address:        127.0.0.53#53
+# azure-pipelines-appservice.yml
+# Build on a Microsoft-hosted agent (has internet); stage the bundle in blob
+# storage; deploy from the self-hosted agent (reaches blob + the ILB ASE).
+# Fully automated end to end — no manual upload, no local build.
+#
+# 'web-development' variable group must contain:
+#   azureSubscription  (service connection with Contributor on the RG + Storage Blob Data Contributor on the storage acct)
+#   appName, resourceGroup, slotName
+#   TABLES_CONNECTION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, REFRESH_SECRET
+#   storageAccount     (e.g. zagoestimtordvae1sto01)
+#   storageContainer   (e.g. builds)
 
-** server can't find spsprodsea3.vssps.visualstudio.com: NXDOMAIN
+trigger:
+  branches:
+    include: [ main ]
 
-acbautomationuser@z-ago-dev000003:~$ curl -I https:zagoestimtordvae1sto01.blob.core.windows.net
-curl: (3) URL rejected: Port number was not a decimal number between 0 and 65535
-acbautomationuser@z-ago-dev000003:~$ curl -I https://zagoestimtordvae1sto01.blob.core.windows.net
-HTTP/1.1 400 Value for one of the query parameters specified in the request URI is invalid.
-Transfer-Encoding: chunked
-Server: Microsoft-HTTPAPI/2.0
-x-ms-request-id: bd245dda-001e-0017-3930-36c9a2000000
-Date: Thu, 27 Aug 2026 14:30:15 GMT
+variables:
+  - group: web-development
+  - name: bundleName
+    value: 'app-bundle-$(Build.BuildId).zip'   # versioned per build
+
+stages:
+# ---------------------------------------------------------------------------
+# BUILD — Microsoft-hosted (internet). Builds SPA, assembles bundle,
+# uploads it to blob storage.
+# ---------------------------------------------------------------------------
+- stage: Build
+  jobs:
+  - job: build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: NodeTool@0
+      inputs: { versionSpec: '24.x' }
+      displayName: 'Use Node 24'
+
+    - script: |
+        set -e
+        cd "$(Build.SourcesDirectory)"
+        cd app && npm install && npm run build && cd ..
+        npm install --omit=dev
+        mkdir -p deploy
+        cp server.js package.json deploy/
+        cp -r api deploy/api
+        cp -r node_modules deploy/node_modules
+        cp -r app/dist deploy/dist
+        ls -la deploy
+      displayName: 'Install deps + build + assemble'
+
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: '$(Build.SourcesDirectory)/deploy'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+        replaceExistingArchive: true
+
+    - task: AzureCLI@2
+      displayName: 'Upload bundle to blob storage'
+      inputs:
+        azureSubscription: '$(azureSubscription)'
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          set -e
+          az storage blob upload \
+            --account-name "$(storageAccount)" \
+            --container-name "$(storageContainer)" \
+            --name "$(bundleName)" \
+            --file "$(Build.ArtifactStagingDirectory)/app.zip" \
+            --auth-mode login \
+            --overwrite
+          echo "Uploaded $(bundleName)"
+
+# ---------------------------------------------------------------------------
+# DEPLOY — self-hosted (reaches blob + ILB ASE). Generates a short-lived SAS
+# on the build side is not possible here, so we download via the AzureCLI on
+# the build stage's identity is unavailable; instead the deploy job builds a
+# SAS using a storage account key fetched through the service connection.
+# To keep the self-hosted agent free of az CLI, we generate the SAS in a
+# Microsoft-hosted helper job and pass it as an output variable.
+# ---------------------------------------------------------------------------
+- stage: MakeSas
+  dependsOn: Build
+  jobs:
+  - job: makeSas
+    pool:
+      vmImage: ubuntu-latest        # has az CLI + internet
+    steps:
+    - task: AzureCLI@2
+      name: sas
+      displayName: 'Generate SAS URL for the bundle'
+      inputs:
+        azureSubscription: '$(azureSubscription)'
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          set -e
+          KEY=$(az storage account keys list --account-name "$(storageAccount)" \
+                --query "[0].value" -o tsv)
+          EXPIRY=$(date -u -d "+2 hours" '+%Y-%m-%dT%H:%MZ')
+          SAS=$(az storage blob generate-sas \
+                --account-name "$(storageAccount)" --account-key "$KEY" \
+                --container-name "$(storageContainer)" --name "$(bundleName)" \
+                --permissions r --expiry "$EXPIRY" --https-only -o tsv)
+          URL="https://$(storageAccount).blob.core.windows.net/$(storageContainer)/$(bundleName)?$SAS"
+          echo "##vso[task.setvariable variable=bundleSasUrl;isOutput=true;issecret=true]$URL"
+
+- stage: DeployStaging
+  dependsOn: MakeSas
+  variables:
+    bundleSasUrl: $[ stageDependencies.MakeSas.makeSas.outputs['sas.bundleSasUrl'] ]
+  jobs:
+  - deployment: deployStaging
+    pool:
+      name: z-ago-devops-agent-np-as1-vmss01
+    environment: 'Staging'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - script: |
+              set -e
+              if [ -z "$SAS" ]; then echo "SAS URL empty"; exit 1; fi
+              curl -sSL -o "$(Pipeline.Workspace)/app.zip" "$SAS"
+              ls -la "$(Pipeline.Workspace)/app.zip"
+            displayName: 'Download bundle from blob (SAS)'
+            env:
+              SAS: $(bundleSasUrl)
+
+          - task: AzureAppServiceSettings@1
+            displayName: 'Apply app settings (staging slot)'
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appName: '$(appName)'
+              resourceGroupName: '$(resourceGroup)'
+              slotName: '$(slotName)'
+              appSettings: |
+                [
+                  { "name": "TABLES_CONNECTION",    "value": "$(TABLES_CONNECTION)",    "slotSetting": false },
+                  { "name": "AWS_ACCESS_KEY_ID",    "value": "$(AWS_ACCESS_KEY_ID)",    "slotSetting": false },
+                  { "name": "AWS_SECRET_ACCESS_KEY","value": "$(AWS_SECRET_ACCESS_KEY)","slotSetting": false },
+                  { "name": "REFRESH_SECRET",       "value": "$(REFRESH_SECRET)",       "slotSetting": false },
+                  { "name": "WEBSITE_RUN_FROM_PACKAGE",       "value": "1",     "slotSetting": false },
+                  { "name": "SCM_DO_BUILD_DURING_DEPLOYMENT", "value": "false", "slotSetting": false },
+                  { "name": "WEBSITES_PORT",                  "value": "8080",  "slotSetting": false }
+                ]
+
+          - task: AzureWebApp@1
+            displayName: 'Deploy to staging slot'
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appType: 'webAppLinux'
+              appName: '$(appName)'
+              deployToSlotOrASE: true
+              resourceGroupName: '$(resourceGroup)'
+              slotName: '$(slotName)'
+              package: '$(Pipeline.Workspace)/app.zip'
+              runtimeStack: 'NODE|24-lts'
+              startUpCommand: 'node server.js'
