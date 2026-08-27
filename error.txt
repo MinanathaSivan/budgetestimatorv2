@@ -1,1 +1,58 @@
-az webapp deployment slot list -g z-ago-best-dv01-ae1-rgp01 -n zagobestdv01ae1web01 -o table
+trigger:
+  branches:
+    include: [ main ]
+
+variables:
+  - group: web-development
+
+stages:
+- stage: Build
+  jobs:
+  - job: build
+    pool:
+      vmImage: ubuntu-latest          # Microsoft-hosted: HAS internet for npm/build
+    steps:
+    - task: NodeTool@0
+      inputs: { versionSpec: '24.x' }
+    - script: |
+        cd app && npm ci && npm run build && cd ..
+        npm ci --omit=dev
+        mkdir -p deploy
+        cp server.js package.json deploy/
+        cp -r api deploy/api
+        cp -r node_modules deploy/node_modules
+        cp -r app/dist deploy/dist
+      displayName: 'Build + assemble bundle'
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: 'deploy'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+    - publish: '$(Build.ArtifactStagingDirectory)/app.zip'
+      artifact: appbundle              # <-- the DevOps artifact
+
+- stage: DeployStaging
+  dependsOn: Build
+  jobs:
+  - deployment: deployStaging
+    pool:
+      name: z-ago-devops-agent-np-as1-vmss01   # self-hosted: reaches the ASE
+    environment: 'Staging'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: appbundle        # <-- pulls the artifact via DevOps
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appType: 'webAppLinux'
+              appName: '$(appName)'
+              deployToSlotOrASE: true
+              resourceGroupName: '$(resourceGroup)'
+              slotName: '$(slotName)'
+              package: '$(Pipeline.Workspace)/appbundle/app.zip'
+              runtimeStack: 'NODE|24-lts'
+              startUpCommand: 'node server.js'
