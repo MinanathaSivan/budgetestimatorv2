@@ -1,1 +1,1 @@
-https://stg-axa-cloud-budget-estimator.corp.intraxa/.auth/login/onelogin/callback
+ONELOGIN_CLIENT_SECRET
