@@ -1,68 +1,10 @@
-2026-08-28T09:45:17.2214024Z    _____
-2026-08-28T09:45:17.2215633Z   /  _  \ __________ _________   ____
-2026-08-28T09:45:17.2215712Z  /  /_\  \\___   /  |  \_  __ \_/ __ \
-2026-08-28T09:45:17.2215741Z /    |    \/    /|  |  /|  | \/\  ___/
-2026-08-28T09:45:17.2215765Z \____|__  /_____ \____/ |__|    \___  >
-2026-08-28T09:45:17.2215794Z         \/      \/                  \/
-2026-08-28T09:45:17.2215818Z A P P   S E R V I C E   O N   L I N U X
-2026-08-28T09:45:17.2215868Z
-2026-08-28T09:45:17.2215909Z Documentation    : http://aka.ms/webapp-linux
-2026-08-28T09:45:17.2215942Z NodeJS quickstart: https://aka.ms/node-qs
-2026-08-28T09:45:17.2215971Z NodeJS Version   : v24.18.0
-2026-08-28T09:45:17.2216Z Instance Name    : al0sdlwk000001
-2026-08-28T09:45:17.2216034Z Instance Id      : e7adbffe7a9306cf3b69e5759917ea1be4e8f496a9807afa71e7308ee38d5df3
-2026-08-28T09:45:17.2216063Z
-2026-08-28T09:45:17.2216109Z Note: Any data outside '/home' is not persisted
-2026-08-28T09:45:18.4357901Z  * Starting OpenBSD Secure Shell server sshd
-2026-08-28T09:45:18.4535496Z    ...done.
-2026-08-28T09:45:18.4609769Z WEBSITES_INCLUDE_CLOUD_CERTS is not set to true.
-2026-08-28T09:45:18.4773423Z Updating certificates in /etc/ssl/certs...
-2026-08-28T09:45:22.6365768Z rehash: warning: skipping duplicate certificate in SSLcom-TLS-Root-2022-ECC.pem
-2026-08-28T09:45:22.6408121Z rehash: warning: skipping duplicate certificate in SSLcom-TLS-Root-2022-RSA.pem
-2026-08-28T09:45:22.7394417Z rehash: warning: skipping ca-certificates.crt,it does not contain exactly one certificate or CRL
-2026-08-28T09:45:22.7499046Z 4 added, 0 removed; done.
-2026-08-28T09:45:22.75001Z Running hooks in /etc/ca-certificates/update.d...
-2026-08-28T09:45:22.7525754Z done.
-2026-08-28T09:45:22.7587068Z CA certificates copied and updated successfully.
-2026-08-28T09:45:22.804218Z  * Starting periodic command scheduler cron
-2026-08-28T09:45:22.8157421Z    ...done.
-2026-08-28T09:45:22.8399924Z Could not find build manifest file at '/home/site/wwwroot/oryx-manifest.toml'
-2026-08-28T09:45:22.8413808Z Could not find operation ID in manifest. Generating an operation id...
-2026-08-28T09:45:22.8425867Z Build Operation ID: 824adda6-24a1-4fd7-a378-9ceb2338377c
-2026-08-28T09:45:25.9612166Z Environment Variables for Application Insight's IPA Codeless Configuration exists..
-2026-08-28T09:45:29.1140224Z Writing output script to '/opt/startup/startup.sh'
-2026-08-28T09:45:32.1901915Z Running #!/bin/sh
-2026-08-28T09:45:32.1902576Z
-2026-08-28T09:45:32.1902628Z # Enter the source directory to make sure the script runs where the user expects
-2026-08-28T09:45:32.190266Z cd "/home/site/wwwroot"
-2026-08-28T09:45:32.1902685Z
-2026-08-28T09:45:32.1902712Z export NODE_PATH=/usr/local/lib/node_modules:$NODE_PATH
-2026-08-28T09:45:32.1902738Z if [ -z "$PORT" ]; then
-2026-08-28T09:45:32.1902768Z 		export PORT=8080
-2026-08-28T09:45:32.190279Z fi
-2026-08-28T09:45:32.1902861Z
-2026-08-28T09:45:32.1902886Z PATH="$PATH:/home/site/wwwroot" node server.js
-2026-08-28T09:45:32.7603727Z Mounted 16 API routes:
-2026-08-28T09:45:32.7604385Z   POST /api/AddUser
-2026-08-28T09:45:32.7604433Z   POST /api/DeleteEstimate
-2026-08-28T09:45:32.7604467Z   GET /api/GetAwsPrices
-2026-08-28T09:45:32.7604503Z   GET /api/GetAzurePrices
-2026-08-28T09:45:32.7604532Z   GET /api/GetEstimates
-2026-08-28T09:45:32.7604668Z   GET /api/GetMe
-2026-08-28T09:45:32.7604694Z   GET /api/GetPricingAuditLog
-2026-08-28T09:45:32.7604717Z   GET /api/GetProducts
-2026-08-28T09:45:32.7604739Z   GET /api/GetUsers
-2026-08-28T09:45:32.7604766Z   POST /api/RefreshAwsPricesNow
-2026-08-28T09:45:32.7604798Z   POST /api/RefreshAzurePricesNow
-2026-08-28T09:45:32.7604832Z   POST /api/RemoveUser
-2026-08-28T09:45:32.7604858Z   POST /api/SaveEstimate
-2026-08-28T09:45:32.7604903Z   POST /api/UpdateEstimate
-2026-08-28T09:45:32.7604931Z   POST /api/UpdateProduct
-2026-08-28T09:45:32.7604964Z   POST /api/UpdateUser
-2026-08-28T09:45:32.7640589Z Server listening on :8080
-2026-08-28T09:54:51.336744Z [GET /api/GetMe] connect ETIMEDOUT 20.60.131.230:443
-2026-08-28T09:55:54.8289888Z [GET /api/GetMe] connect ETIMEDOUT 20.60.131.230:443
-2026-08-28T09:56:35.7851091Z [GET /api/GetMe] connect ETIMEDOUT 20.60.131.230:443
-2026-08-28T09:56:37.8323984Z [GET /api/GetMe] connect ETIMEDOUT 20.60.131.230:443
-2026-08-28T10:04:41.1608446Z [GET /api/GetMe] connect ETIMEDOUT 20.60.131.230:443
-2026-08-28T10:05:05.7368865Z [GET /api/GetMe] connect ETIMEDOUT 20.60.131.230:443
+acbautomationuser@z-ago-dev000004:~$ nslookup zagoestimtordvae1sto01.table.core.
+windows.net
+Server:         127.0.0.53
+Address:        127.0.0.53#53
+
+Non-authoritative answer:
+zagoestimtordvae1sto01.table.core.windows.net   canonical name = zagoestimtordvae1sto01.privatelink.table.core.windows.net.
+zagoestimtordvae1sto01.privatelink.table.core.windows.net       canonical name = table.hkg21prdstr02a.store.core.windows.net.
+Name:   table.hkg21prdstr02a.store.core.windows.net
+Address: 20.150.22.102
