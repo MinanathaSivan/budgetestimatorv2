@@ -6,3 +6,14 @@ Issuer URL: https://login.microsoftonline.com/2da8bd67-6a72-4cd8-8e8a-8e9721305d
 Allowed token audiences: b9632d7c-4302-4d50-b536-45ce264e1314
 Restrict access: Require authentication
 Unauthenticated requests: HTTP 302 redirect to login
+
+
+Access to stg-axa-cloud-budget-estimator.corp.intraxa was denied
+You don't have the user rights to view this page.
+HTTP ERROR 403
+
+
+https://login.microsoftonline.com/2da8bd67-6a72-4cd8-8e8a-8e9721305d50/oauth2/v2.0/authorize?response_type=code+id_token&redirect_uri=https%3a%2f%2fstg-axa-cloud-budget-estimator.corp.intraxa%2f.auth%2flogin%2faad%2fcallback&client_id=b9632d7c-4302-4d50-b536-45ce264e1314&scope=openid+profile+email&response_mode=form_post&nonce=f3e1e85fed374ea4b9a0fce0a09258e3_20260828095042&state=redir%3d%252F&sso_nonce=AwABEgEAAAADAOz_BQD0_0V2b1N0c0FydGlmYWN0cwUAAAAAAOXGK3a2jCBPjyh3oax8lRaFw_onEnI9j9OJfe2NSvUI4SdfZxR3nU00CSoCYCHujrsRqifjsZD-VfFh6VzH0SwgAA&client-request-id=66333497-3351-44dd-9048-c8f12aa6bd60&mscrid=66333497-3351-44dd-9048-c8f12aa6bd60
+
+
+Loading…
