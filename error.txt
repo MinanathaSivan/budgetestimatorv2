@@ -1,10 +1,1 @@
-acbautomationuser@z-ago-dev000004:~$ nslookup zagoestimtordvae1sto01.table.core.
-windows.net
-Server:         127.0.0.53
-Address:        127.0.0.53#53
-
-Non-authoritative answer:
-zagoestimtordvae1sto01.table.core.windows.net   canonical name = zagoestimtordvae1sto01.privatelink.table.core.windows.net.
-zagoestimtordvae1sto01.privatelink.table.core.windows.net       canonical name = table.hkg21prdstr02a.store.core.windows.net.
-Name:   table.hkg21prdstr02a.store.core.windows.net
-Address: 20.150.22.102
+https://stg-axa-cloud-budget-estimator.corp.intraxa/.auth/login/onelogin/callback
