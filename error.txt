@@ -1,1 +1,56 @@
-ONELOGIN_CLIENT_SECRET
+Phase 2 — Store the client secret
+
+Portal → ASE app → Settings → Environment variables (or Configuration) → add:
+
+Name: ONELOGIN_CLIENT_SECRET
+Value: (the secret)
+Do this on both the app and the staging slot (mark slot-sticky).
+Phase 3 — Configure Easy Auth OIDC provider (staging slot first)
+
+Portal → ASE app → deployment slots → staging → Authentication:
+
+If Entra is currently configured here, you'll add OneAccount alongside or replace — since you're replacing, plan to remove Entra after testing.
+Add identity provider → OpenID Connect
+Name: onelogin (must match the redirect URI path exactly)
+Metadata URL: https://onelogin.stg.axa.com/.well-known/openid-configuration
+Client ID: (from IAM)
+Client secret setting name: ONELOGIN_CLIENT_SECRET
+Scopes: openid profile email
+Restrict access: Require authentication; Unauthenticated: HTTP 302 redirect to login
+Phase 4 — Update the app code for OneAccount
+
+Two files change. I've already drafted these logic changes with you — here's what's needed:
+
+swaAuth.js — change the provider from aad to onelogin:
+login() → /.auth/login/onelogin?post_login_redirect_uri=...
+logout → add OneAccount SLO: redirect to /.auth/logout and then https://onelogin.stg.axa.com/idp/startSLO.ping
+The /.auth/me parsing stays (Easy Auth normalises it the same way).
+auth.js — the email claim resolution. Your OneAccount sample token has email in AXA format, which your UserRoles table is keyed on, so findUser works unchanged. Just confirm getClientPrincipal reads the email claim from the OneAccount token shape (it already handles multiple shapes from our earlier work).
+
+I can produce both files precisely once you confirm you're ready — but they need to go into the build → blob → deploy pipeline you now have working, so this is a code change that flows through your pipeline, not a portal edit.
+
+Phase 5 — Test on staging
+Browse the staging slot URL, sign in — you should be redirected to OneAccount (onelogin.stg.axa.com), not Microsoft.
+After sign-in, verify:
+/.auth/me returns your OneAccount identity with the email claim.
+GetMe resolves your user + role from UserRoles (email match).
+The estimator loads.
+Watch the log stream for the token exchange — if you see an ETIMEDOUT to onelogin.stg.axa.com, that's the egress issue from Phase 1.3, and you'd need a path to OneAccount (it's public SaaS, so this needs the ASE's outbound to reach it — possibly via the egress proxy shown in their onboarding diagram).
+Phase 6 — Cut over to production
+
+Once staging works end to end:
+
+Configure the OneAccount OIDC provider on the production slot (same values).
+Register the production redirect URI with IAM: https://axa-cloud-budget-estimator.corp.intraxa/.auth/login/onelogin/callback (needs the PROD client id/secret and PROD issuer onelogin.axa.com).
+Remove the Entra provider only after OneAccount is confirmed working.
+Deploy the code changes through the pipeline.
+The two things most likely to bite
+App egress to onelogin.stg.axa.com — same class of problem as the storage timeout. OneAccount is public; your ASE is locked down. Their onboarding doc explicitly mentioned needing a proxy/egress to reach OneAccount. Verify this early — it's the #1 risk.
+Provider name consistency — onelogin must match between the Easy Auth config, the swaAuth.js login path, and the registered redirect URI. Any mismatch = redirect failure.
+
+So, to move forward, tell me:
+
+Do you have the STG client id + secret? (gates everything)
+Can the ASE app reach onelogin.stg.axa.com outbound, or is that still to be sorted? (the egress risk)
+
+Once you confirm those, I'll produce the exact swaAuth.js and auth.js changes for OneAccount, ready to push through your pipeline. Which of those two do you have sorted, and which needs work?
